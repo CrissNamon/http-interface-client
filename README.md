@@ -19,7 +19,7 @@ public interface BookClient {
   Book getBook(@Path("id") Integer id);
 
   @POST("/book")
-  Book createBook(@Body Book newBook);
+  Book createBook(@Header("Content-Type") String contentType, @Body Book newBook);
 
   @PUT("/book/{id}")
   Book updateBook(@Path("id") Integer id, @Body Book book);
@@ -28,7 +28,7 @@ public interface BookClient {
   void deleteBook(@Path("id") Integer id);
 
   @GET("/book")
-  AsyncResponse<List<Book>> getBooksAsync();
+  CompletableFuture<List<Book>> getBooksAsync();
 }
 ```
 
@@ -76,13 +76,13 @@ System.out.println(someBook);
 
 //Create new book
 Book newBook = new Book("New book");
-System.out.println(bookClient.createBook(newBook));
+System.out.println(bookClient.createBook("application/json", newBook));
 
 // Update book with id = 5
 System.out.println(bookClient.updateBook(5, newBook));
 
 // Get all books async
-bookClient.getBooksAsync().get()
+bookClient.getBooksAsync()
     .whenComplete((books, throwable) -> System.out.println(books))
     .get();
 
