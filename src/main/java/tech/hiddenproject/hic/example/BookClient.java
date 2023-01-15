@@ -1,6 +1,7 @@
 package tech.hiddenproject.hic.example;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import tech.hiddenproject.hic.annotation.Body;
 import tech.hiddenproject.hic.annotation.DELETE;
 import tech.hiddenproject.hic.annotation.GET;
@@ -8,7 +9,6 @@ import tech.hiddenproject.hic.annotation.POST;
 import tech.hiddenproject.hic.annotation.PUT;
 import tech.hiddenproject.hic.annotation.Path;
 import tech.hiddenproject.hic.annotation.Query;
-import tech.hiddenproject.hic.data.AsyncResponse;
 import tech.hiddenproject.hic.data.Response;
 
 /**
@@ -32,7 +32,7 @@ public interface BookClient {
   void deleteBook(@Path("id") Integer id);
 
   @GET("/book")
-  AsyncResponse<List<Book>> getBooksAsync();
+  CompletableFuture<List<Book>> getBooksAsync();
 
   @GET("/book/error")
   Response<List<Book>> getBooksWrapped();

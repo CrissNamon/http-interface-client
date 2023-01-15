@@ -29,7 +29,6 @@ import tech.hiddenproject.hic.annotation.POST;
 import tech.hiddenproject.hic.annotation.PUT;
 import tech.hiddenproject.hic.annotation.Path;
 import tech.hiddenproject.hic.annotation.Query;
-import tech.hiddenproject.hic.data.AsyncResponse;
 import tech.hiddenproject.hic.data.RequestMethod;
 import tech.hiddenproject.hic.data.Response;
 import tech.hiddenproject.hic.decoder.BodyDecoder;
@@ -144,17 +143,16 @@ public class RequestInvocationInterceptor implements InvocationHandler {
     return null;
   }
 
-  private AsyncResponse sendRequestAsync(HttpRequest httpRequest, Method method) {
+  private CompletableFuture sendRequestAsync(HttpRequest httpRequest, Method method) {
     Type genericType = ((ParameterizedType) method.getGenericReturnType())
         .getActualTypeArguments()[0];
-    CompletableFuture completableFuture = httpClient.sendAsync(httpRequest, BodyHandlers.ofString())
+    return httpClient.sendAsync(httpRequest, BodyHandlers.ofString())
         .thenApply(HttpResponse::body)
         .thenApply(body -> defaultDecoder.decode(body, genericType));
-    return AsyncResponse.create(completableFuture);
   }
 
   private boolean isAsyncRequest(Method method) {
-    return method.getReturnType().equals(AsyncResponse.class);
+    return method.getReturnType().equals(CompletableFuture.class);
   }
 
   private boolean hasResult(Method method) {

@@ -41,7 +41,7 @@ public class Main {
     System.out.println(bookClient.updateBook(5, newBook));
 
     // Get all books async
-    bookClient.getBooksAsync().get().whenComplete((books, throwable) -> System.out.println(books))
+    bookClient.getBooksAsync().whenComplete((books, throwable) -> System.out.println(books))
         .get();
 
     // Get wrapped response
