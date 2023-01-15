@@ -67,31 +67,31 @@ Then just call methods from interface:
 
 ```java
 // Get all books
-List<Book> allBooks=bookClient.getBooks(1);
-    System.out.println(allBooks);
+List<Book> allBooks = bookClient.getBooks(1);
+System.out.println(allBooks);
 
 // Get book with id = 3
-    Book someBook=bookClient.getBook(3);
-    System.out.println(someBook);
+Book someBook = bookClient.getBook(3);
+System.out.println(someBook);
 
 //Create new book
-    Book newBook=new Book("New book");
-    System.out.println(bookClient.createBook(newBook));
+Book newBook = new Book("New book");
+System.out.println(bookClient.createBook(newBook));
 
 // Update book with id = 5
-    System.out.println(bookClient.updateBook(5,newBook));
+System.out.println(bookClient.updateBook(5, newBook));
 
 // Get all books async
-    bookClient.getBooksAsync().get()
-    .whenComplete((books,throwable)->System.out.println(books))
+bookClient.getBooksAsync().get()
+    .whenComplete((books, throwable) -> System.out.println(books))
     .get();
 
 // Get wrapped response
-    Response<List<Book>>allBooksWrapped=bookClient.getBooksWrapped();
-    System.out.println("Is wrapped error: "+allBooksWrapped.isError());
-    System.out.println("Raw unwrapped: "+allBooksWrapped.raw());
-    System.out.println("Unwrapped: "+allBooksWrapped.get());
+Response<List<Book>> allBooksWrapped = bookClient.getBooksWrapped();
+System.out.println("Is wrapped error: " + allBooksWrapped.isError());
+System.out.println("Raw unwrapped: " + allBooksWrapped.raw());
+System.out.println("Unwrapped: " + allBooksWrapped.get());
 
 // Call wrong resource
-    bookClient.nosuchmethod();
+bookClient.nosuchmethod();
 ```
