@@ -95,3 +95,5 @@ System.out.println("Unwrapped: " + allBooksWrapped.get());
 // Call wrong resource
 bookClient.nosuchmethod();
 ```
+
+See [Wiki](https://github.com/CrissNamon/http-interface-client/wiki) for more documentation and examples.
