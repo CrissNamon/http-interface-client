@@ -1,6 +1,7 @@
-package tech.hiddenproject.hic.data;
+package tech.hiddenproject.hic.data.impl;
 
 import java.lang.reflect.Type;
+import tech.hiddenproject.hic.data.HttpResponse;
 import tech.hiddenproject.hic.decoder.BodyDecoder;
 
 /**

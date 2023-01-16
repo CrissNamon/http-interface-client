@@ -23,14 +23,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.hiddenproject.hic.annotation.Body;
 import tech.hiddenproject.hic.annotation.DELETE;
+import tech.hiddenproject.hic.annotation.Field;
 import tech.hiddenproject.hic.annotation.GET;
 import tech.hiddenproject.hic.annotation.Header;
 import tech.hiddenproject.hic.annotation.POST;
 import tech.hiddenproject.hic.annotation.PUT;
+import tech.hiddenproject.hic.annotation.Part;
 import tech.hiddenproject.hic.annotation.Path;
 import tech.hiddenproject.hic.annotation.Query;
+import tech.hiddenproject.hic.data.MultipartData;
+import tech.hiddenproject.hic.data.RequestContent;
 import tech.hiddenproject.hic.data.RequestMethod;
-import tech.hiddenproject.hic.data.Response;
+import tech.hiddenproject.hic.data.impl.Response;
 import tech.hiddenproject.hic.decoder.BodyDecoder;
 import tech.hiddenproject.hic.encoder.BodyEncoder;
 import tech.hiddenproject.hic.exception.HttpClientException;
@@ -91,6 +95,12 @@ public class RequestInvocationInterceptor implements InvocationHandler {
     Map<String, String> bodyParameters = collectParameters(method, Body.class, args, body -> "",
                                                            defaultEncoder::encode
     );
+    Map<String, MultipartData> multipartParameters = collectParameters(method, Part.class, args,
+                                                                       Part::value, this::cast
+    );
+    Map<String, String> formDataParameters = collectParameters(method, Field.class, args,
+                                                               Field::value
+    );
 
     GET get = AnnotationProcessor.extractMethodAnnotation(method, GET.class);
     POST post = AnnotationProcessor.extractMethodAnnotation(method, POST.class);
@@ -100,7 +110,6 @@ public class RequestInvocationInterceptor implements InvocationHandler {
     BooleanOptional.of(ObjectUtils.isMoreThanNull(get, post, put, delete))
         .ifTrueThrow(() -> new HttpClientException(
             "More than one @GET, @POST, @PUT or @DELETE annotations found"));
-
     String pathUrl = IfTrueConditional.create()
         .ifTrue(get, Objects::nonNull).then(() -> get.value())
         .ifTrue(post, Objects::nonNull).then(() -> post.value())
@@ -114,9 +123,17 @@ public class RequestInvocationInterceptor implements InvocationHandler {
         .ifTrue(delete, Objects::nonNull).then(RequestMethod.DELETE)
         .orElseThrows(() -> new HttpClientException(
             "No @GET, @POST, @PUT or @DELETE annotations found on called method"));
+    RequestContent contentType = IfTrueConditional.create()
+        .ifTrue(get, Objects::nonNull).then(() -> get.contentType())
+        .ifTrue(post, Objects::nonNull).then(() -> post.contentType())
+        .ifTrue(put, Objects::nonNull).then(() -> put.contentType())
+        .ifTrue(delete, Objects::nonNull).then(() -> delete.contentType())
+        .orElse(RequestContent.APPLICATION_JSON);
 
     HttpRequest httpRequest = RequestCreator.create(baseUrl.get(), pathUrl, requestMethod,
-                                                    queryUrlParameters, pathUrlParameters, headers,
+                                                    contentType, queryUrlParameters,
+                                                    pathUrlParameters, headers, multipartParameters,
+                                                    formDataParameters,
                                                     bodyParameters.values().stream().findFirst()
                                                         .orElse("")
     );
@@ -134,9 +151,9 @@ public class RequestInvocationInterceptor implements InvocationHandler {
           .forEach(handler -> handler.getValue()
               .handler(httpResponse.statusCode(), httpResponse.body()));
       log.info(httpResponse.body());
-      if (hasResult(method)) {
-        return wrapResponse(httpResponse, method);
-      }
+      return IfTrueConditional.create()
+          .ifTrue(method, this::hasResult).then(() -> wrapResponse(httpResponse, method))
+          .orElse(null);
     } catch (JsonSyntaxException | IOException | InterruptedException e) {
       clientExceptionHandler.handle(e);
     }
@@ -174,11 +191,11 @@ public class RequestInvocationInterceptor implements InvocationHandler {
         : defaultDecoder.decode(httpResponse.body(), method.getReturnType());
   }
 
-  private <T extends Annotation> Map<String, String> collectParameters(Method method,
-                                                                       Class<T> annotationClass,
-                                                                       Object[] args,
-                                                                       Function<T, String> keyExtractor,
-                                                                       Function<Object, String> valueExtractor) {
+  private <T extends Annotation, V> Map<String, V> collectParameters(Method method,
+                                                                     Class<T> annotationClass,
+                                                                     Object[] args,
+                                                                     Function<T, String> keyExtractor,
+                                                                     Function<Object, V> valueExtractor) {
     Map<T, Object> parameters = AnnotationProcessor.extractMethodParametersWithAnnotation(
         method, annotationClass, args);
     return parameters.entrySet().stream()
@@ -193,5 +210,9 @@ public class RequestInvocationInterceptor implements InvocationHandler {
                                                                        Object[] args,
                                                                        Function<T, String> keyExtractor) {
     return collectParameters(method, annotationClass, args, keyExtractor, Object::toString);
+  }
+
+  private <T> T cast(Object obj) {
+    return (T) obj;
   }
 }

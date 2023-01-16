@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import tech.hiddenproject.hic.data.RequestContent;
 
 /**
  * @author Danila Rassokhin
@@ -13,5 +14,7 @@ import java.lang.annotation.Target;
 public @interface GET {
 
   String value();
+
+  RequestContent contentType() default RequestContent.APPLICATION_JSON;
 
 }

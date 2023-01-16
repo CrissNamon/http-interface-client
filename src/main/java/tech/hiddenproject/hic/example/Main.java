@@ -1,9 +1,12 @@
 package tech.hiddenproject.hic.example;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import tech.hiddenproject.hic.WebClient;
-import tech.hiddenproject.hic.data.Response;
+import tech.hiddenproject.hic.data.MultipartData;
+import tech.hiddenproject.hic.data.impl.MultipartFile;
+import tech.hiddenproject.hic.data.impl.Response;
 import tech.hiddenproject.hic.decoder.impl.JSONBodyDecoder;
 import tech.hiddenproject.hic.encoder.impl.JSONBodyEncoder;
 import tech.hiddenproject.hic.handler.impl.DefaultExceptionHandler;
@@ -50,8 +53,11 @@ public class Main {
     System.out.println("Raw unwrapped: " + allBooksWrapped.raw());
     System.out.println("Unwrapped: " + allBooksWrapped.get());
 
-    // Call wrong resource
-    bookClient.nosuchmethod();
+    bookClient.createBookFromForm("The peripheral");
+
+    File file = new File("file.txt");
+    MultipartData multipartFile = new MultipartFile(file.toPath());
+    bookClient.createBookFromFile(multipartFile);
   }
 
   public static String authorizationBearerToken() {

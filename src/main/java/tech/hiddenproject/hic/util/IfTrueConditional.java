@@ -76,10 +76,6 @@ public class IfTrueConditional<T> {
     public IfTrueConditional<T> then(Supplier<T> supplier) {
       return root.add(supplier, predicate);
     }
-
-    public IfTrueConditional<T> thenNothing() {
-      return root.add(() -> null, predicate);
-    }
   }
 
 }
